@@ -11,13 +11,12 @@ let angleAcceleration;
 let inertion;
 let pendulumInertion = 0.001;
 
+
 const gravitation = 9.806;
 const blockFriction = 0.1;
 let ratioHeight;
 let velocity = 0;
 let tensionForce;
-
-let incorrectValues = [true, true, true, true, true];
 
 let deg = 0;
 let startDeg = deg;
@@ -27,11 +26,15 @@ let maxHeight = 355;
 
 let y;
 
-let labEnd = true;
+let incorrectValues = [true, true, true, true, true];
 
+let labEnd = true;
 let timer;
 
+// По нажатию на кнопку проводится опыт
 startLab.onclick = function() {
+
+    // Если предыдущий опыт не был закончен останавливаем его
     if (!labEnd){
         labEnd = true;
         clearInterval(timer);
@@ -42,28 +45,31 @@ startLab.onclick = function() {
     else {
         labEnd = false;
 
+        // Сброс значений и проверка введеных данных
         reset_values();
-
-        check_values();
-
-        for (let i = 0; i < incorrectValues.length; i++)
-            if (incorrectValues[i])
+        if (check_incorrect_input()) {
+            alert('Неверные данные, проверьте ввод');
             return;
+        }
+        
+        // вычисляем основные силы действующие на тело
+        setup(); 
 
-            
-        setup();
-
+        // рисуем кнопку остановки лабораторной
         stopLabButton();
         
+        // запускаем таймер
         let time_start = Date.now();
         
         timer = setInterval(function() {
             
             let time_passed = Date.now() - time_start;
             
+            // вычисляем и меняем координату блока (и веревки) для каждого момента времени
             calculate_y(time_passed / 1000);
             draw_result(y, time_passed);
             
+            // как только блок оказался на земле выходим
             if (y >= maxHeight) {
                 labEnd = true;
                 y = maxHeight;
@@ -77,30 +83,25 @@ startLab.onclick = function() {
     }
 }
 
+// Для вычисления основных сил
 function setup() {
+    // Момент инерции блоков, шкива и спиц
     inertion = 2 * js_weight_m0 * Math.pow(js_radius, 2) + pendulumInertion;
+    // Коэффициент перевода высоты из метров в пиксели 
     ratioHeight = js_height / (maxHeight - minHeight);
 
+    // вычисляем линейное и угловое ускорения из выведеной формулы
     acceleration = ( (js_weight_m1 * gravitation - blockFriction) * Math.pow(js_radius_effective, 2) ) / (inertion + Math.pow(js_radius_effective, 2) * js_weight_m1 );
     angleAcceleration = acceleration / js_radius_effective;
-    
 }
 
+// сброс высоты
 function reset_values() {
     y = minHeight;
-    setAlertHidden();
 }
 
-
-function setAlertHidden() {
-    radius_alert.classList.add('visually-hidden');
-    radius_effective_alert.classList.add('visually-hidden');
-    height_alert.classList.add('visually-hidden');
-    weight_m0_alert.classList.add('visually-hidden');
-    weight_m1_alert.classList.add('visually-hidden');
-}
-
-function check_values() {
+// Проверка неверного ввода
+function check_incorrect_input() {
     if (js_radius == '' || js_radius == undefined) {
         radius_alert.classList.remove('visually-hidden');
         incorrectValues[0] = true;
@@ -121,56 +122,47 @@ function check_values() {
         height_alert.classList.remove('visually-hidden');
         incorrectValues[4] = true;
     }
-    return incorrectValues;
+
+    for (let i = 0; i < incorrectValues.length; i++)
+            if (incorrectValues[i])
+                return true;
+    return false;
 }
 
+// отрисовка кнопки "старта"
 function startLabButton() {
     startLab.classList.remove('btn-danger');
     startLab.classList.add('btn-success');
     startLab.innerHTML = 'Провести опыт';
 }
 
-function resetLab(){
-    reset_values();
-    startLabButton();
-    draw_result(y, 0);
-}
-
+// отрисовка кнопки "стоп"
 function stopLabButton() {
     startLab.classList.remove('btn-success');
     startLab.classList.add('btn-danger');
     startLab.innerHTML = 'Сбросить результат';
 }
 
+// вычисления высоты в каждый момент времени
 function calculate_y(time_passed) {
-    velocity = acceleration * time_passed;
-
-    if (acceleration >= 0) {
-
+    if (acceleration >= 0) { // отрисовка происходит только при положительном ускорении, иначе блок не может двигаться
         deg = startDeg + angleAcceleration * Math.pow(time_passed, 2) / 2 / ratioHeight / 10;
         y = minHeight + acceleration * Math.pow(time_passed, 2) / 2 / ratioHeight;
-    }
-    
+    }    
 }
 
+// отрисовка изменения координат блока(и веревки), угла маятника, времени
 function draw_result(y, time_passed) {
 
     block_rope.style.height = y + 'px';
     main_block.style.top = y + 'px';
-    
-    
+        
     line_1.style.transform = 'rotateZ(' + deg + 'deg )';
     
     lab_time.innerHTML = 'Время : ' + Number(time_passed / 1000).toFixed(2) + ' секунд';
 }
 
-    js_radius_effective = radius_effective.value;
-    js_height = height.value;
-    js_weight_m0 = weight_m0.value;
-    js_weight_m1 = weight_m1.value;
-
-
-
+// проверки по вводу, вызываются каждый раз при расфокусировка "input'а"
 radius.onblur = function() {
     js_radius = Number(radius.value) / 100;
     if (js_radius < 0 || js_radius > 0.3) {
