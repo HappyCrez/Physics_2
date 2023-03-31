@@ -67,14 +67,14 @@ startLab.onclick = function() {
             
             // вычисляем и меняем координату блока (и веревки) для каждого момента времени
             calculate_y(time_passed / 1000);
-            draw_result(y, time_passed);
+            draw_result(y, time_passed / 1000);
             
             // как только блок оказался на земле выходим
             if (y >= maxHeight) {
                 labEnd = true;
                 y = maxHeight;
                 startDeg = deg;
-                draw_result(y, time_passed);
+                draw_result(y, (time_passed / 1000) + Math.random() / 4 - 0.125);
                 clearInterval(timer);
                 startLabButton();
                 return;
@@ -159,7 +159,7 @@ function draw_result(y, time_passed) {
         
     line_1.style.transform = 'rotateZ(' + deg + 'deg )';
     
-    lab_time.innerHTML = 'Время : ' + Number(time_passed / 1000).toFixed(2) + ' секунд';
+    lab_time.innerHTML = 'Время : ' + Number(time_passed).toFixed(2) + ' секунд';
 }
 
 // проверки по вводу, вызываются каждый раз при расфокусировка "input'а"
