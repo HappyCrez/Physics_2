@@ -74,6 +74,7 @@ startLab.onclick = function() {
                 labEnd = true;
                 y = maxHeight;
                 startDeg = deg;
+                
                 draw_result(y, (time_passed / 1000) + Math.random() / 4 - 0.125);
                 clearInterval(timer);
                 startLabButton();
