@@ -31,6 +31,13 @@ let incorrectValues = [true, true, true, true, true];
 let labEnd = true;
 let timer;
 
+let timer_1_error_rate;
+let timer_2_error_rate;
+let timer_3_error_rate;
+let timer_4_error_rate;
+let timer_5_error_rate;
+
+
 // По нажатию на кнопку проводится опыт
 startLab.onclick = function() {
 
@@ -75,7 +82,7 @@ startLab.onclick = function() {
                 y = maxHeight;
                 startDeg = deg;
                 
-                draw_result(y, (time_passed / 1000) + Math.random() / 4 - 0.125);
+                draw_result(y, time_passed / 1000);
                 clearInterval(timer);
                 startLabButton();
                 return;
@@ -99,6 +106,12 @@ function setup() {
 // сброс высоты
 function reset_values() {
     y = minHeight;
+
+    timer_1_error_rate = Math.random() / 4 - 0.125;
+    timer_2_error_rate = Math.random() / 4 - 0.125;
+    timer_3_error_rate = Math.random() / 4 - 0.125;
+    timer_4_error_rate = Math.random() / 4 - 0.125;
+    timer_5_error_rate = Math.random() / 4 - 0.125;
 }
 
 // Проверка неверного ввода
@@ -160,7 +173,21 @@ function draw_result(y, time_passed) {
         
     line_1.style.transform = 'rotateZ(' + deg + 'deg )';
     
-    lab_time.innerHTML = 'Время : ' + Number(time_passed).toFixed(2) + ' секунд';
+    if (time_passed + timer_1_error_rate >= 0) {
+        timer_1.innerHTML = Number(time_passed + timer_1_error_rate).toFixed(2) + 'с.';
+    }
+    if (time_passed + timer_2_error_rate >= 0) {
+        timer_2.innerHTML = Number(time_passed + timer_2_error_rate).toFixed(2) + 'с.';
+    }
+    if (time_passed + timer_3_error_rate >= 0) {
+        timer_3.innerHTML = Number(time_passed + timer_3_error_rate).toFixed(2) + 'с.';
+    }
+    if (time_passed + timer_4_error_rate >= 0) {
+        timer_4.innerHTML = Number(time_passed + timer_4_error_rate).toFixed(2) + 'с.';
+    }
+    if (time_passed + timer_5_error_rate >= 0) {
+        timer_5.innerHTML = Number(time_passed + timer_5_error_rate).toFixed(2) + 'с.';
+    }
 }
 
 // проверки по вводу, вызываются каждый раз при расфокусировка "input'а"
