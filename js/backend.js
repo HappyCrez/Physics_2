@@ -5,12 +5,10 @@ let js_height;
 let js_weight_m0;
 let js_weight_m1;
 
-
 let acceleration;
 let angleAcceleration;
 let inertion;
 let pendulumInertion = 0.001;
-
 
 const gravitation = 9.806;
 const blockFriction = 0.1;
@@ -37,10 +35,24 @@ let timer_3_error_rate;
 let timer_4_error_rate;
 let timer_5_error_rate;
 
+const laborator = document.querySelector('.laborator');
+const instruction = document.querySelector('.instruction');
+let is_instruction = false;
+
+document.querySelector('#instructionButton').addEventListener('click', ()=> {
+    if (is_instruction) {
+        instruction.classList.add('visually-hidden');
+        laborator.classList.remove('visually-hidden');
+    }
+    else {
+        instruction.classList.remove('visually-hidden');
+        laborator.classList.add('visually-hidden');
+    }
+    is_instruction = !is_instruction;
+});
 
 // По нажатию на кнопку проводится опыт
 startLab.onclick = function() {
-
     // Если предыдущий опыт не был закончен останавливаем его
     if (!labEnd){
         labEnd = true;
@@ -50,14 +62,13 @@ startLab.onclick = function() {
         return;
     }
     else {
-        labEnd = false;
-
         // Сброс значений и проверка введеных данных
         reset_values();
         if (check_incorrect_input()) {
             alert('Неверные данные, проверьте ввод');
             return;
         }
+        labEnd = false;
         
         // вычисляем основные силы действующие на тело
         setup(); 
@@ -116,30 +127,69 @@ function reset_values() {
 
 // Проверка неверного ввода
 function check_incorrect_input() {
-    if (js_radius == '' || js_radius == undefined) {
+    if (checkIncorrectNumberField(js_radius)) {
         radius_alert.classList.remove('visually-hidden');
         incorrectValues[0] = true;
     }
-    if (js_weight_m0 == '' || js_weight_m0 == undefined) {
+    else {
+        radius_alert.classList.add('visually-hidden');
+        incorrectValues[0] = false;
+    }
+
+    if (checkIncorrectNumberField(js_weight_m0)) {
         weight_m0_alert.classList.remove('visually-hidden');
         incorrectValues[1] = true;
     }
-    if (js_weight_m1 == '' || js_weight_m1 == undefined) {
+    else {
+        radius_alert.classList.add('visually-hidden');
+        incorrectValues[1] = false;
+    }
+
+    if (checkIncorrectNumberField(js_weight_m1)) {
         weight_m1_alert.classList.remove('visually-hidden');
         incorrectValues[2] = true;
     }
-    if (js_radius_effective == '' || js_radius_effective == undefined) {
+    else {
+        radius_alert.classList.add('visually-hidden');
+        incorrectValues[2] = false;
+    }
+
+    if (checkIncorrectNumberField(js_radius_effective)) {
         radius_effective_alert.classList.remove('visually-hidden');
         incorrectValues[3] = true;
     }
-    if (js_height == '' || js_height == undefined) {
+    else {
+        radius_alert.classList.add('visually-hidden');
+        incorrectValues[3] = false;
+    }
+
+    if (checkIncorrectNumberField(js_height)) {
         height_alert.classList.remove('visually-hidden');
         incorrectValues[4] = true;
     }
+    else {
+        radius_alert.classList.add('visually-hidden');
+        incorrectValues[4] = false;
+    }
 
     for (let i = 0; i < incorrectValues.length; i++)
-            if (incorrectValues[i])
-                return true;
+        if (incorrectValues[i])
+            return true;
+    return false;
+}
+
+function checkIncorrectNumberField(num) {
+    if (num == undefined) {
+        return true;
+    }
+    let strTemp = num.toString();
+    for (let i = 0; i < strTemp.length; i++) {
+        let element = strTemp[i];
+        if ( (element < '0'|| element > '9') && (element != '.')) {
+            console.log(element);
+            return true;   
+        }
+    }
     return false;
 }
 

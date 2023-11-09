@@ -10,6 +10,15 @@ body{
     background-color: #fff;
 }
 
+img {
+    height: 40px;
+}
+
+.table_image {
+    height: auto;
+    width: 80%;
+}
+
 .bg1{
     background-color: var(--main_light_color);
 }
@@ -26,6 +35,22 @@ body{
     color: var(--main_deep_color);
 }
 
+
+/*      HEADER       */
+.header-item {
+    display: flex;
+}
+
+.header-title {
+    width: 70%;
+}
+
+.instruct_button_item {
+    text-align: right;
+    width: 30%;
+}
+
+/*      CANVAS       */
 .pendulum{
     position: relative;
     margin-left: auto;
@@ -96,10 +121,4 @@ body{
     top: 70px;
     right: -11px;
     background-color: var(--main_deep_color);
-}
-
-@keyframes rotate {
-    100%{
-        transform: rotate(360deg);
-    }
 }
