@@ -123,3 +123,7 @@ img {
     right: -11px;
     background-color: var(--main_deep_color);
 }
+
+.table {
+    table-layout: fixed;
+}

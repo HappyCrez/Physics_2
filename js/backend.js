@@ -1,55 +1,31 @@
 
-let js_radius;
-let js_radius_effective;
-let js_height;
-let js_weight_m0;
-let js_weight_m1;
-
-let acceleration;
-let angleAcceleration;
-let inertion;
-let pendulumInertion = 0.001;
+let radius_val;
+let effective_radius_val;
+let height_val;
+let weight_m0_val;
+let weight_m1_val;
 
 const gravitation = 9.806;
+const pendulumInertion = 0.001;
 const blockFriction = 0.1;
-let ratioHeight;
-let velocity = 0;
-let tensionForce;
 
 let deg = 0;
 let startDeg = deg;
 
-let minHeight = 70;
-let maxHeight = 355;
+const minHeight = 70;
+const maxHeight = 355;
 
 let y;
-
-let incorrectValues = [true, true, true, true, true];
-
 let labEnd = true;
+
 let timer;
+const timerList = [];
+const timeErrors = [];
 
-let timer_1_error_rate;
-let timer_2_error_rate;
-let timer_3_error_rate;
-let timer_4_error_rate;
-let timer_5_error_rate;
-
-const laborator = document.querySelector('.laborator');
-const instruction = document.querySelector('.instruction');
-let is_instruction = false;
-
-document.querySelector('#instructionButton').addEventListener('click', ()=> {
-    if (is_instruction) {
-        instruction.classList.add('visually-hidden');
-        laborator.classList.remove('visually-hidden');
-    }
-    else {
-        instruction.classList.remove('visually-hidden');
-        laborator.classList.add('visually-hidden');
-    }
-    is_instruction = !is_instruction;
-});
+function setup() {
+    for (let i = 0; i < 5; i++) timerList.push(document.getElementById('timer_' + i));
+}
+setup();
 
 // По нажатию на кнопку проводится опыт
 startLab.onclick = function() {
@@ -61,136 +37,63 @@ startLab.onclick = function() {
         startDeg = deg;
         return;
     }
-    else {
-        // Сброс значений и проверка введеных данных
-        reset_values();
-        if (check_incorrect_input()) {
-            alert('Неверные данные, проверьте ввод');
+    labEnd = false;
+    reset_values();
+    let {acceleration, angleAcceleration} = calculateAcceleration();
+    let ratioHeight = calculateRatioHeight();
+    
+    // запускаем таймер
+    let time_start = Date.now();
+    
+    timer = setInterval(function() {
+        
+        let time_passed = (Date.now() - time_start) / 1000;
+        
+        // вычисляем и меняем координату блока (и веревки) для каждого момента времени
+        updateY(acceleration, angleAcceleration, ratioHeight, time_passed);
+        draw(y, time_passed);
+        
+        // как только блок оказался на земле выходим
+        if (y >= maxHeight) {
+            labEnd = true;
+            y = maxHeight;
+            startDeg = deg;
+            
+            draw(y, time_passed);
+            clearInterval(timer);
+            startLabButton();
             return;
         }
-        labEnd = false;
-        
-        // вычисляем основные силы действующие на тело
-        setup(); 
-
-        // рисуем кнопку остановки лабораторной
-        stopLabButton();
-        
-        // запускаем таймер
-        let time_start = Date.now();
-        
-        timer = setInterval(function() {
-            
-            let time_passed = Date.now() - time_start;
-            
-            // вычисляем и меняем координату блока (и веревки) для каждого момента времени
-            calculate_y(time_passed / 1000);
-            draw_result(y, time_passed / 1000);
-            
-            // как только блок оказался на земле выходим
-            if (y >= maxHeight) {
-                labEnd = true;
-                y = maxHeight;
-                startDeg = deg;
-                
-                draw_result(y, time_passed / 1000);
-                clearInterval(timer);
-                startLabButton();
-                return;
-            }
-        }, 20);
-    }
+    }, 20);
 }
 
-// Для вычисления основных сил
-function setup() {
-    // Момент инерции блоков, шкива и спиц
-    inertion = 2 * js_weight_m0 * Math.pow(js_radius, 2) + pendulumInertion;
-    // Коэффициент перевода высоты из метров в пиксели 
-    ratioHeight = js_height / (maxHeight - minHeight);
-
-    // вычисляем линейное и угловое ускорения из выведеной формулы
-    acceleration = ( (js_weight_m1 * gravitation - blockFriction) * Math.pow(js_radius_effective, 2) ) / (inertion + Math.pow(js_radius_effective, 2) * js_weight_m1 );
-    angleAcceleration = acceleration / js_radius_effective;
-}
-
-// сброс высоты
 function reset_values() {
+    setHeight();
+    setRadius();
+    setWeightM0();
+    setWeightM1();
+    setEffectiveRadius();
+    
     y = minHeight;
 
-    timer_1_error_rate = Math.random() / 4 - 0.125;
-    timer_2_error_rate = Math.random() / 4 - 0.125;
-    timer_3_error_rate = Math.random() / 4 - 0.125;
-    timer_4_error_rate = Math.random() / 4 - 0.125;
-    timer_5_error_rate = Math.random() / 4 - 0.125;
+    for (let i = 0; i < 5; i++) timeErrors[i] = Math.random() / 4 - 0.125;
+    stopLabButton();
 }
 
-// Проверка неверного ввода
-function check_incorrect_input() {
-    if (checkIncorrectNumberField(js_radius)) {
-        radius_alert.classList.remove('visually-hidden');
-        incorrectValues[0] = true;
-    }
-    else {
-        radius_alert.classList.add('visually-hidden');
-        incorrectValues[0] = false;
-    }
+function calculateAcceleration() {
+    // Момент инерции блоков, шкива и спиц
+    let inertion = 2 * weight_m0_val * Math.pow(radius_val, 2) + pendulumInertion;
+    let weightForce = (weight_m1_val * gravitation - blockFriction);
+    let square = effective_radius_val * effective_radius_val;
 
-    if (checkIncorrectNumberField(js_weight_m0)) {
-        weight_m0_alert.classList.remove('visually-hidden');
-        incorrectValues[1] = true;
-    }
-    else {
-        radius_alert.classList.add('visually-hidden');
-        incorrectValues[1] = false;
-    }
-
-    if (checkIncorrectNumberField(js_weight_m1)) {
-        weight_m1_alert.classList.remove('visually-hidden');
-        incorrectValues[2] = true;
-    }
-    else {
-        radius_alert.classList.add('visually-hidden');
-        incorrectValues[2] = false;
-    }
-
-    if (checkIncorrectNumberField(js_radius_effective)) {
-        radius_effective_alert.classList.remove('visually-hidden');
-        incorrectValues[3] = true;
-    }
-    else {
-        radius_alert.classList.add('visually-hidden');
-        incorrectValues[3] = false;
-    }
-
-    if (checkIncorrectNumberField(js_height)) {
-        height_alert.classList.remove('visually-hidden');
-        incorrectValues[4] = true;
-    }
-    else {
-        radius_alert.classList.add('visually-hidden');
-        incorrectValues[4] = false;
-    }
-
-    for (let i = 0; i < incorrectValues.length; i++)
-        if (incorrectValues[i])
-            return true;
-    return false;
+    // вычисляем линейное и угловое ускорения из выведеной формулы
+    let acceleration = ( weightForce * square) / (inertion + square * weight_m1_val );
+    let angleAcceleration = acceleration / effective_radius_val;
+    return {acceleration, angleAcceleration};
 }
 
-function checkIncorrectNumberField(num) {
-    if (num == undefined) {
-        return true;
-    }
-    let strTemp = num.toString();
-    for (let i = 0; i < strTemp.length; i++) {
-        let element = strTemp[i];
-        if ( (element < '0'|| element > '9') && (element != '.')) {
-            console.log(element);
-            return true;   
-        }
-    }
-    return false;
+function calculateRatioHeight() {
+    return ratioHeight = height_val / (maxHeight - minHeight); // Коэффициент перевода высоты из метров в пиксели
 }
 
 // отрисовка кнопки "старта"
@@ -208,98 +111,45 @@ function stopLabButton() {
 }
 
 // вычисления высоты в каждый момент времени
-function calculate_y(time_passed) {
-    if (acceleration >= 0) { // отрисовка происходит только при положительном ускорении, иначе блок не может двигаться
-        deg = startDeg + angleAcceleration * Math.pow(time_passed, 2) / 2 / ratioHeight / 10;
-        y = minHeight + acceleration * Math.pow(time_passed, 2) / 2 / ratioHeight;
-    }    
+function updateY(acceleration, angleAcceleration, ratioHeight, time_passed) {
+    if (acceleration < 0) return; // Если блок не двигается -> выход
+    
+    let square_time = time_passed * time_passed;
+    deg = startDeg + angleAcceleration * square_time / 2 / ratioHeight;
+    while (deg > 360) deg -= 360;
+
+    y = minHeight + acceleration * square_time / 2 / ratioHeight;
 }
 
 // отрисовка изменения координат блока(и веревки), угла маятника, времени
-function draw_result(y, time_passed) {
+function draw(y, time_passed) {
 
     block_rope.style.height = y + 'px';
     main_block.style.top = y + 'px';
         
     line_1.style.transform = 'rotateZ(' + deg + 'deg )';
     
-    if (time_passed + timer_1_error_rate >= 0) {
-        timer_1.innerHTML = Number(time_passed + timer_1_error_rate).toFixed(2) + 'с.';
-    }
-    if (time_passed + timer_2_error_rate >= 0) {
-        timer_2.innerHTML = Number(time_passed + timer_2_error_rate).toFixed(2) + 'с.';
-    }
-    if (time_passed + timer_3_error_rate >= 0) {
-        timer_3.innerHTML = Number(time_passed + timer_3_error_rate).toFixed(2) + 'с.';
-    }
-    if (time_passed + timer_4_error_rate >= 0) {
-        timer_4.innerHTML = Number(time_passed + timer_4_error_rate).toFixed(2) + 'с.';
-    }
-    if (time_passed + timer_5_error_rate >= 0) {
-        timer_5.innerHTML = Number(time_passed + timer_5_error_rate).toFixed(2) + 'с.';
+    for (let i = 0; i < 5; i++) {
+        let real_time = time_passed + timeErrors[i];
+        if (real_time > 0) timerList[i].innerHTML = real_time.toFixed(2) + 'с.';
     }
 }
 
-// проверки по вводу, вызываются каждый раз при расфокусировка "input'а"
-radius.onblur = function() {
-    js_radius = Number(radius.value) / 100;
-    if (js_radius < 0 || js_radius > 0.3) {
-        radius_alert.classList.remove('visually-hidden');
-        incorrectValues[0] = true;
-    }
-    else {
-        incorrectValues[0] = false;
-        radius_alert.classList.add('visually-hidden');
-        block_1.style.right = (100 * js_radius) + 60 + '%';
-        block_2.style.left = (100 * js_radius) + 60 + '%';
-    }
-
+// Ввод только для цифр
+function onlyDigits(event) {
+    let val = event.target.value;
+    if (event.data != null && (event.data[0] < '0' || event.data[0] > '9'))
+        event.target.value = val.substr(0,val.length-1);
 }
 
-radius_effective.onblur = function() {
-    js_radius_effective = Number(radius_effective.value) / 100;
-    if (js_radius_effective < 0 || js_radius_effective > 0.5) {
-        incorrectValues[1] = true;
-        radius_effective_alert.classList.remove('visually-hidden');
-    }
-    else {
-        incorrectValues[1] = false;
-        radius_effective_alert.classList.add('visually-hidden');
-    }
-}
+const height = document.getElementById('height');           height.addEventListener('input', onlyDigits);
+const radius =  document.getElementById('radius');          radius.addEventListener('input', onlyDigits);
+const weight_m0 = document.getElementById('weight_m0');     weight_m0.addEventListener('input', onlyDigits);
+const weight_m1 = document.getElementById('weight_m1');     weight_m1.addEventListener('input', onlyDigits);
+const effectiveRadius = document.getElementById('radius_effective');     effectiveRadius.addEventListener('input', onlyDigits);
 
-height.onblur = function() {
-    js_height = Number(height.value) / 100;
-    if (js_height < 0 || js_height > 10) {
-        incorrectValues[2] = true;
-        height_alert.classList.remove('visually-hidden');
-    }
-    else {
-        incorrectValues[2] = false;
-        height_alert.classList.add('visually-hidden');
-    }
-}
-
-weight_m0.onblur = function() {
-    js_weight_m0 = Number(weight_m0.value) / 1000;
-    if (js_weight_m0 < 0 || js_weight_m0 >= 1) {
-        incorrectValues[3] = true;
-        weight_m0_alert.classList.remove('visually-hidden');
-    }
-    else {
-        incorrectValues[3] = false;
-        weight_m0_alert.classList.add('visually-hidden');
-    }
-}
-
-weight_m1.onblur = function() {
-    js_weight_m1 = Number(weight_m1.value) / 1000;
-    if (js_weight_m1 < 0 || js_weight_m1 >= 1) {
-        incorrectValues[4] = true;
-        weight_m1_alert.classList.remove('visually-hidden');
-    }
-    else {
-        incorrectValues[4] = false;
-        weight_m1_alert.classList.add('visually-hidden');
-    }
-}
+function setHeight()    { height_val = parseInt(height.value) / 100; }
+function setRadius()    { radius_val = parseInt(height.value) / 100; }
+function setWeightM0()  { weight_m0_val = parseInt(weight_m0.value) / 1000; }
+function setWeightM1()  { weight_m1_val = parseInt(weight_m1.value) / 1000; }
+function setEffectiveRadius()    { effective_radius_val = parseInt(effectiveRadius.value) / 100; }
