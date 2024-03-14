@@ -1,4 +1,3 @@
-
 let radius_val;
 let effective_radius_val;
 let height_val;
