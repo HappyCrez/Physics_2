@@ -148,7 +148,7 @@ const weight_m1 = document.getElementById('weight_m1');     weight_m1.addEventLi
 const effectiveRadius = document.getElementById('radius_effective');     effectiveRadius.addEventListener('input', onlyDigits);
 
 function setHeight()    { height_val = parseInt(height.value) / 100; }
-function setRadius()    { radius_val = parseInt(height.value) / 100; }
+function setRadius()    { radius_val = parseInt(radius.value) / 100; }
 function setWeightM0()  { weight_m0_val = parseInt(weight_m0.value) / 1000; }
 function setWeightM1()  { weight_m1_val = parseInt(weight_m1.value) / 1000; }
 function setEffectiveRadius()    { effective_radius_val = parseInt(effectiveRadius.value) / 100; }
